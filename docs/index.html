@@ -29,11 +29,13 @@ h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.01em}
 .tile .k{font-size:12px;color:var(--muted)}
 .tile .v{font-size:21px;font-weight:700}
 .tile .d{font-size:12px;color:var(--muted);line-height:1.45}
-.quad{display:grid;grid-template-columns:1fr 1fr;gap:3px;font-size:11px}
-.quad div{background:var(--bg);border-radius:3px;padding:5px 6px;color:var(--muted)}
-.quad div.on{background:var(--sel);border:1px solid var(--selb);color:var(--text);font-weight:600}
-.hist{display:flex;gap:2px;height:8px;border-radius:2px;overflow:hidden}
-.hist div{flex:1}
+.qmap{position:relative;height:132px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;border-radius:6px;overflow:hidden;font-size:11px}
+.qmap .q{background:var(--bg);padding:5px 6px;color:var(--muted);display:flex}
+.qmap .q.on{background:var(--sel);color:var(--text);font-weight:600}
+.qmap .dot{position:absolute;border-radius:50%;transform:translate(-50%,-50%)}
+.qax{display:flex;justify-content:space-between;font-size:10px;color:var(--dim)}
+.hist{display:flex;gap:2px;height:16px}
+.hist div{flex:1;border-radius:2px;font:600 9px/16px Inter,sans-serif;text-align:center}
 .row2{display:flex;flex-wrap:wrap;gap:12px}
 .conds{flex:2 1 640px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
 .cond{padding:12px;display:flex;flex-direction:column;gap:5px}
@@ -81,7 +83,7 @@ svg text{font-family:Inter,sans-serif}
 const LV=[['#A3612C','#FFFFFF'],['#7A4A26','#F3E7DC'],['#4A3220','#E6EDF3'],['#2A313B','#C9D1D9'],['#1F3A5F','#E6EDF3'],['#2D6CC0','#FFFFFF'],['#3A80DD','#FFFFFF']];
 const SYM=['−−−','−−','−','·','+','++','+++'];
 const TONE={'1':'var(--pos)','-1':'var(--neg)','0':'var(--neu)'};
-const REG={Reflation:'#3A80DD',Goldilocks:'#1F3A5F',Stagflation:'#7A4A26',Deflation:'#4A3220'};
+const REG={Reflation:['#3A80DD','#FFFFFF'],Goldilocks:['#1F3A5F','#C9D9F2'],Stagflation:['#F28C38','#1A0E04'],Deflation:['#6B4122','#F3E7DC']};
 const HI={'5':0,'21':1,'63':2}, HL={'5':'1W','21':'1M','63':'3M'};
 const S={h:'21',sel:null,open:{},cls:{},init:false,data:null};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -134,7 +136,6 @@ function render(){
 
   // ---------- level 0
   const rg=v.regime, rn=rg.name;
-  const q=['Goldilocks','Reflation','Deflation','Stagflation'];
   const condBy=Object.fromEntries(d.conditions.map(c=>[c.id,c]));
   const cs=id=>condBy[id]&&!condBy[id].missing?condBy[id].state[h]:null;
   const liqTxt=['netliq','dxy','hy','stable'].map(id=>{const s=cs(id);return s?`${condBy[id].name.replace(' (DXY)','').replace('HY credit spreads','spreads').replace('Stablecoin supply','stablecoins')} ${s.txt}`:null}).filter(Boolean).join(', ');
@@ -143,10 +144,10 @@ function render(){
   const b=v.breadth, vo=v.volatility, rk=v.risk;
   html+=`<div class="lvl">LEVEL 0 · VERDICT</div><div class="tiles">
     <div class="panel tile" title="Growth score ${rg.growth?.toFixed(2)} · inflation score ${rg.inflation?.toFixed(2)} (3-month market-implied)">
-      <div class="k">Macro regime (growth × inflation)</div>
-      <div class="v">${esc(rn||'—')}</div>
-      <div class="quad">${q.map(x=>`<div class="${x===rn?'on':''}">${x}${x===rn?' ●':''}</div>`).join('')}</div>
-      <div class="hist" aria-label="regime over the last 12 months">${rg.history.map(m=>`<div style="background:${REG[m.r]||'#2A313B'}" title="${esc(m.m)}: ${esc(m.r||'—')}"></div>`).join('')}</div>
+      <div class="k">Macro regime · ↔ growth, ↕ inflation (3M)</div>
+      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap"><div class="v">${esc(rn||'—')}</div><span style="font-size:12px;color:var(--muted)">${esc(regConf(rg))}</span></div>
+      ${regMap(rg)}
+      <div class="hist" aria-label="regime over the last 12 months">${rg.history.map(m=>{const c=REG[m.r]||['#2A313B','#9AA4AF'];return `<div style="background:${c[0]};color:${c[1]}" title="${esc(m.m)}: ${esc(m.r||'—')}">${m.r?m.r[0]:'·'}</div>`}).join('')}</div>
       <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted)"><span>12 months ago</span><span>now</span></div>
     </div>
     <div class="panel tile"><div class="k">Risk appetite</div>
@@ -246,6 +247,27 @@ function kids(list,cid,parent,byRank){
 }
 function togCls(id){S.cls[id]=!S.cls[id];if(S.cls[id])S.sel=id;render()}
 function allCls(on){for(const c of S.data.classes)S.cls[c.id]=on;render()}
+// regime map: x = growth, y = inflation; dot = now, faint dots = last 6 month-ends
+function regPos(g,i){const s=2,c=v=>Math.max(-1,Math.min(1,v/s));return [50+c(g)*44,50-c(i)*42]}
+function regMap(rg){
+  const rn=rg.name, cell=(n)=>`<div class="q ${n===rn?'on':''}" style="${n==='Stagflation'||n==='Reflation'?'':'align-items:flex-end;'}${n==='Reflation'||n==='Goldilocks'?'justify-content:flex-end;':''}">${n}</div>`;
+  let dots='';
+  const tr=rg.history.filter(m=>m.g!=null&&m.i!=null).slice(-7,-1);
+  tr.forEach((m,k)=>{const [x,y]=regPos(m.g,m.i);dots+=`<div class="dot" title="${esc(m.m)}: ${esc(m.r)}" style="left:${x}%;top:${y}%;width:6px;height:6px;background:#9AA4AF;opacity:${(0.25+0.6*(k+1)/tr.length).toFixed(2)}"></div>`});
+  if(rg.growth!=null&&rg.inflation!=null){const [x,y]=regPos(rg.growth,rg.inflation);
+    dots+=`<div class="dot" title="Now: growth ${rg.growth.toFixed(2)}, inflation ${rg.inflation.toFixed(2)}" style="left:${x}%;top:${y}%;width:12px;height:12px;background:#E6EDF3;border:2px solid #0E1116"></div>`}
+  return `<div class="qmap" role="img" aria-label="Regime map: growth on the horizontal axis, inflation on the vertical">
+    ${cell('Stagflation')}${cell('Reflation')}${cell('Deflation')}${cell('Goldilocks')}${dots}</div>
+    <div class="qax"><span>← growth falling</span><span>growth rising →</span></div>`;
+}
+function regConf(rg){
+  const g=rg.growth,i=rg.inflation; if(g==null||i==null)return '';
+  const m=Math.min(Math.abs(g),Math.abs(i));
+  if(m>=0.75)return 'firmly in regime';
+  if(m>=0.25)return 'moderate';
+  const other=Math.abs(g)<Math.abs(i)?(i>=0?(g>=0?'Stagflation':'Reflation'):(g>=0?'Deflation':'Goldilocks')):(g>=0?(i>=0?'Goldilocks':'Reflation'):(i>=0?'Deflation':'Stagflation'));
+  return 'near the boundary with '+other;
+}
 function pick(id){S.sel=id;S.cls[id]=true;render();
   const el=document.querySelector('.mx');if(el)el.closest('.panel').scrollIntoView({behavior:'smooth',block:'start'})}
 function tog(k){S.open[k]=!S.open[k];render()}
