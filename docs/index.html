@@ -83,7 +83,7 @@ const SYM=['−−−','−−','−','·','+','++','+++'];
 const TONE={'1':'var(--pos)','-1':'var(--neg)','0':'var(--neu)'};
 const REG={Reflation:'#3A80DD',Goldilocks:'#1F3A5F',Stagflation:'#7A4A26',Deflation:'#4A3220'};
 const HI={'5':0,'21':1,'63':2}, HL={'5':'1W','21':'1M','63':'3M'};
-const S={h:'21',sel:null,open:{},data:null};
+const S={h:'21',sel:null,open:{},cls:{},init:false,data:null};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pct=(v,d=1)=>v==null?'—':(v>0?'+':'')+(v*100).toFixed(d)+'%';
 const arrow=t=>t>0?'▲':t<0?'▼':'●';
@@ -115,7 +115,7 @@ function tips(raw,parent){
 function render(){
   const d=S.data, v=d.verdict, h=S.h, hi=HI[h];
   const classes=[...d.classes].sort((a,b)=>(b.strength[h]??0)-(a.strength[h]??0));
-  if(!S.sel&&classes.length)S.sel=classes[0].id;
+  if(!S.init&&classes.length){S.sel=classes[0].id;S.cls[S.sel]=true;S.init=true}
   const asof=new Date(d.generated);
   let html=`
   <div class="top">
@@ -202,12 +202,13 @@ function render(){
   const sc=classes.find(c=>c.id===S.sel);
   html+=`<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin-top:8px">
     <span class="lvl" style="margin:0">LEVEL 3–4 · WHERE IT CONCENTRATES — INSTRUMENTS</span>
-    <span style="font-size:13px">All markets <span style="color:var(--dim)">›</span> <span style="color:var(--pos);font-weight:600">${esc(sc?.name||'')}</span></span></div>
+    <span style="font-size:13px">All markets${sc&&S.cls[sc.id]?` <span style="color:var(--dim)">›</span> <span style="color:var(--pos);font-weight:600">${esc(sc.name)}</span>`:''}</span>
+    <span style="margin-left:auto;display:flex;gap:6px"><button class="btn" onclick="allCls(true)">Expand all</button><button class="btn" onclick="allCls(false)">Collapse all</button></span></div>
   <div class="panel" style="padding:8px"><div class="scroll"><div class="mx">
     <div class="mr hd"><span>Class / instrument</span>${COLS.map(c=>`<span>${c}</span>`).join('')}<span>Signal</span></div>`;
   for(const c of classes){
-    const open=c.id===S.sel;
-    html+=row({n:c.name,tk:'',cells:c.cells,raw:c.raw,sig:c.sig,tone:c.tone},0,open,`pick('${c.id}')`,'ACWI',true);
+    const open=!!S.cls[c.id];
+    html+=row({n:c.name,tk:'',cells:c.cells,raw:c.raw,sig:c.sig,tone:c.tone},0,open,`togCls('${c.id}')`,'ACWI',true);
     if(open)html+=kids(c.children,c.id,c.id==='crypto'?'top-10 index':c.proxy,c.id==='crypto');
   }
   html+=`</div></div></div>
@@ -243,7 +244,9 @@ function kids(list,cid,parent,byRank){
   }
   return out;
 }
-function pick(id){S.sel=S.sel===id?null:id;if(S.sel===null)S.sel=id;render();
+function togCls(id){S.cls[id]=!S.cls[id];if(S.cls[id])S.sel=id;render()}
+function allCls(on){for(const c of S.data.classes)S.cls[c.id]=on;render()}
+function pick(id){S.sel=id;S.cls[id]=true;render();
   const el=document.querySelector('.mx');if(el)el.closest('.panel').scrollIntoView({behavior:'smooth',block:'start'})}
 function tog(k){S.open[k]=!S.open[k];render()}
 
