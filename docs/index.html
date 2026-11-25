@@ -165,14 +165,14 @@ function render(){
   </div>`;
 
   // ---------- level 1
-  html+=`<div class="lvl">LEVEL 1 · FINANCIAL CONDITIONS — WHAT MOVES EVERYTHING</div><div class="row2"><div class="conds">`;
+  html+=`<div class="lvl">LEVEL 1 · FINANCIAL CONDITIONS — WHAT MOVES EVERYTHING <span style="letter-spacing:0;font-weight:400;text-transform:none;color:var(--dim)">· arrow = direction, colour = <span style="color:var(--pos)">supportive</span> / <span style="color:var(--neg)">headwind</span></span></div><div class="row2"><div class="conds">`;
   for(const c of d.conditions){
     if(c.missing){html+=`<div class="panel cond"><div class="h"><span>${esc(c.why)}</span><span>${esc(c.src)}</span></div><div class="n">${esc(c.name)}</div><div class="s" style="color:var(--dim)">no data</div></div>`;continue}
     const s=c.state[h]||{}, col=TONE[s.tone??0];
     const ch=s.chg==null?'':(c.unit==='pct'?((s.chg>0?'+':'')+(s.chg*100).toFixed(0)+' bp'):pct(s.chg));
     html+=`<div class="panel cond"><div class="h"><span>${esc(c.why)}</span><span>${esc(c.src)}</span></div>
       <div class="n">${esc(c.name)}</div>
-      <div class="s mono" style="color:${col}">${arrow(s.tone??0)} ${esc(s.txt)}</div>
+      <div class="s mono" style="color:${col}" title="Arrow = direction of the series. Colour = what it means for markets: blue supportive, orange headwind, grey neutral.">${s.z==null||Math.abs(s.z)<0.5?'●':s.z>0?'▲':'▼'} ${esc(s.txt)}</div>
       <div class="val mono">${money(c.value,c.unit)} · ${ch} ${HL[h]}</div>
       <div class="spark" aria-hidden="true">${c.spark.map(x=>`<div style="height:${x}%;background:${col}"></div>`).join('')}</div></div>`;
   }
