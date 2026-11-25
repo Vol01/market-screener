@@ -1,0 +1,79 @@
+{
+ "members": [
+  "bitcoin",
+  "ethereum",
+  "binancecoin",
+  "ripple",
+  "solana",
+  "tron",
+  "figure-heloc",
+  "hyperliquid",
+  "zcash",
+  "monero"
+ ],
+ "history": {
+  "2026-11-25": [
+   "bitcoin",
+   "ethereum",
+   "binancecoin",
+   "ripple",
+   "solana",
+   "tron",
+   "figure-heloc",
+   "hyperliquid",
+   "zcash",
+   "monero"
+  ]
+ },
+ "last_run": "2026-11-25T19:10+00:00",
+ "regime_history": [
+  {
+   "m": "2025-12",
+   "r": "Goldilocks"
+  },
+  {
+   "m": "2026-01",
+   "r": "Stagflation"
+  },
+  {
+   "m": "2026-02",
+   "r": "Stagflation"
+  },
+  {
+   "m": "2026-03",
+   "r": "Stagflation"
+  },
+  {
+   "m": "2026-04",
+   "r": "Reflation"
+  },
+  {
+   "m": "2026-05",
+   "r": "Reflation"
+  },
+  {
+   "m": "2026-06",
+   "r": "Goldilocks"
+  },
+  {
+   "m": "2026-07",
+   "r": "Goldilocks"
+  },
+  {
+   "m": "2026-08",
+   "r": "Goldilocks"
+  },
+  {
+   "m": "2026-09",
+   "r": "Reflation"
+  },
+  {
+   "m": "2026-10",
+   "r": "Stagflation"
+  },
+  {
+   "m": "2026-11",
+   "r": "Deflation"
+  }
+ ]
+}
