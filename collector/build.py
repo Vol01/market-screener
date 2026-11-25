@@ -314,8 +314,8 @@ def build_overview(P, fred, stable, cal, classes_out):
     hist = []
     months = pd.Series(range(len(cal)), index=cal).groupby(cal.to_period("M")).last()
     for per, pos in list(months.items())[-12:]:
-        nm, _, _ = regime_at(pos + 1)
-        hist.append({"m": str(per), "r": nm})
+        nm, gg, ii = regime_at(pos + 1)
+        hist.append({"m": str(per), "r": nm, "g": gg, "i": ii})
 
     # risk appetite
     risk_parts = [("Stocks vs bonds", ratio("SPY", "IEF")), ("Credit vs treasuries", ratio("HYG", "IEF")),

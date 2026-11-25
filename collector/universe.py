@@ -118,7 +118,7 @@ CLASSES = [
         "items": [
             {"t": "UUP", "n": "US dollar (ETF)"}, {"t": "DX-Y.NYB", "n": "US dollar index (DXY)", "noagg": True},
             {"t": "EURUSD=X", "n": "EUR/USD"}, {"t": "USDJPY=X", "n": "USD/JPY"}, {"t": "GBPUSD=X", "n": "GBP/USD"},
-            {"t": "AUDUSD=X", "n": "AUD/USD"}, {"t": "CNH=X", "n": "USD/CNH"},
+            {"t": "AUDUSD=X", "n": "AUD/USD"}, {"t": "CNY=X", "n": "USD/CNY"},
         ],
     },
     {
