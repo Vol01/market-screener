@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market Screener</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#0E1116;--panel:#161B22;--sub:#1C222B;--line:#2A313B;--text:#E6EDF3;--muted:#9AA4AF;--dim:#6B7480;
+  --pos:#7DB4FF;--neg:#F28C38;--neu:#9AA4AF;--sel:#1F3A5F;--selb:#4C9AFF;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;font-size:14px}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.wrap{max-width:1392px;margin:0 auto;padding:24px 20px 56px;display:flex;flex-direction:column;gap:18px}
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px}
+h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.01em}
+.sub{font-size:13px;color:var(--muted)}
+.lvl{font-size:11px;letter-spacing:.12em;color:var(--muted);font-weight:600;margin-top:8px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.btn{background:var(--panel);color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:8px 12px;font:500 13px Inter,sans-serif;cursor:pointer;min-height:36px}
+.btn.on{background:var(--sel);color:var(--text);border-color:var(--selb);font-weight:600}
+.badge{font-size:11px;border-radius:999px;padding:3px 9px;border:1px solid var(--line);color:var(--muted);background:var(--panel);cursor:pointer}
+.badge.warn{color:var(--neg);border-color:#6b4423}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.tile{padding:16px;display:flex;flex-direction:column;gap:9px}
+.tile .k{font-size:12px;color:var(--muted)}
+.tile .v{font-size:21px;font-weight:700}
+.tile .d{font-size:12px;color:var(--muted);line-height:1.45}
+.quad{display:grid;grid-template-columns:1fr 1fr;gap:3px;font-size:11px}
+.quad div{background:var(--bg);border-radius:3px;padding:5px 6px;color:var(--muted)}
+.quad div.on{background:var(--sel);border:1px solid var(--selb);color:var(--text);font-weight:600}
+.hist{display:flex;gap:2px;height:8px;border-radius:2px;overflow:hidden}
+.hist div{flex:1}
+.row2{display:flex;flex-wrap:wrap;gap:12px}
+.conds{flex:2 1 640px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+.cond{padding:12px;display:flex;flex-direction:column;gap:5px}
+.cond .h{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.cond .n{font-size:15px;font-weight:600}
+.cond .s{font-size:13px;font-weight:600}
+.cond .val{font-size:12px;color:var(--muted)}
+.spark{display:flex;gap:2px;align-items:flex-end;height:22px}
+.spark div{flex:1;border-radius:1px;opacity:.55}
+.feed{flex:1 1 320px;padding:16px;display:flex;flex-direction:column}
+.feed .it{font-size:13px;line-height:1.4;padding:7px 0;border-bottom:1px solid #222934}
+.feed .it:last-child{border-bottom:0}
+.rrgbox{flex:1 1 380px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.cls{flex:1.4 1 540px;padding:16px;min-width:0;display:flex;flex-direction:column;gap:2px}
+.scroll{overflow-x:auto}
+.ct{display:grid;grid-template-columns:150px 1fr 56px 96px 140px;gap:10px;align-items:center;padding:8px;border-radius:6px;font-size:13px;border:1px solid transparent;background:var(--bg);margin-bottom:2px;cursor:pointer;width:100%;text-align:left;color:var(--text);font-family:inherit}
+.ct:hover{border-color:var(--line)}
+.ct.on{background:#16263A;border-color:var(--selb)}
+.ct.hd{background:none;cursor:default;color:var(--muted);font-size:11px;padding:6px 8px}
+.bar{height:10px;border-radius:2px}
+.mx{min-width:940px;display:flex;flex-direction:column;gap:2px}
+.mr{display:grid;grid-template-columns:260px repeat(7,70px) minmax(160px,1fr);gap:3px;align-items:center;padding:2px 6px;border-radius:6px}
+.mr.hd{font-size:11px;color:var(--muted);padding:8px 6px}
+.mr.hd span{text-align:center}.mr.hd span:first-child,.mr.hd span:last-child{text-align:left}
+.mr.g{background:var(--sub);padding:6px;margin-top:6px}
+.mr .nm{width:100%;justify-content:flex-start;display:flex;gap:8px;align-items:baseline;white-space:nowrap;overflow:hidden;background:none;border:0;color:inherit;font:inherit;text-align:left;padding:0;cursor:pointer}
+.mr .nm:disabled{cursor:default}
+.mr .tk{font-size:11px;color:var(--muted);font-weight:400}
+.c{height:24px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+.mr.g .c{height:28px}
+.mr.l2 .c{height:22px}
+.new{font-size:10px;font-weight:700;color:#0E1116;background:var(--pos);border-radius:3px;padding:1px 4px}
+.legend{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+.legend .c{width:42px;height:22px}
+.note{font-size:11px;color:var(--muted);line-height:1.5}
+.errs{display:none;padding:12px 16px;font-size:12px;color:var(--muted)}
+.errs.show{display:block}
+svg text{font-family:Inter,sans-serif}
+@media (max-width:640px){.wrap{padding:16px 12px 40px}.tile .v{font-size:19px}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="sub">Loading data…</div></div>
+<script>
+const LV=[['#A3612C','#FFFFFF'],['#7A4A26','#F3E7DC'],['#4A3220','#E6EDF3'],['#2A313B','#C9D1D9'],['#1F3A5F','#E6EDF3'],['#2D6CC0','#FFFFFF'],['#3A80DD','#FFFFFF']];
+const SYM=['−−−','−−','−','·','+','++','+++'];
+const TONE={'1':'var(--pos)','-1':'var(--neg)','0':'var(--neu)'};
+const REG={Reflation:'#3A80DD',Goldilocks:'#1F3A5F',Stagflation:'#7A4A26',Deflation:'#4A3220'};
+const HI={'5':0,'21':1,'63':2}, HL={'5':'1W','21':'1M','63':'3M'};
+const S={h:'21',sel:null,open:{},data:null};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pct=(v,d=1)=>v==null?'—':(v>0?'+':'')+(v*100).toFixed(d)+'%';
+const arrow=t=>t>0?'▲':t<0?'▼':'●';
+
+function money(v,u){
+  if(v==null)return'—';
+  if(u==='bn')return'$'+(v/1000).toFixed(2)+'T';
+  if(u==='usd')return'$'+(v/1e9).toFixed(0)+'B';
+  if(u==='pct')return v.toFixed(2)+'%';
+  return v.toFixed(v>100?1:2);
+}
+function cell(v,title){
+  if(v==null)return `<div class="c mono" style="background:#1A1F27;color:#6B7480" title="${esc(title||'no data')}">n/a</div>`;
+  const [bg,fg]=LV[v+3];
+  return `<div class="c mono" style="background:${bg};color:${fg}" title="${esc(title)}">${SYM[v+3]}</div>`;
+}
+const COLS=['RS 1W','RS 1M','RS 3M','Trend','Volume','Accum.','> MA50'];
+function tips(raw,parent){
+  const r=raw||[];
+  return [
+    `RS 1W: ${pct(r[0])} vs ${parent}`,`RS 1M: ${pct(r[1])} vs ${parent}`,`RS 3M: ${pct(r[2])} vs ${parent}`,
+    `Trend: ${r[3]??'—'} (−3…+3: price vs MA50, MA200, MA50 vs MA200)`,
+    `Volume: ${r[4]==null?'—':r[4].toFixed(2)+'× normal'} (20-day vs 120-day dollar volume)`,
+    `Accumulation: ${r[5]==null?'—':(r[5]>0?'+':'')+r[5].toFixed(2)} (volume on up days minus down days, −1…+1)`,
+    `Above MA50: ${r[6]==null?'—':Math.round(r[6]*100)+'%'}`
+  ];
+}
+
+function render(){
+  const d=S.data, v=d.verdict, h=S.h, hi=HI[h];
+  const classes=[...d.classes].sort((a,b)=>(b.strength[h]??0)-(a.strength[h]??0));
+  if(!S.sel&&classes.length)S.sel=classes[0].id;
+  const asof=new Date(d.generated);
+  let html=`
+  <div class="top">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap">
+      <h1>Market Screener</h1>
+      <span class="sub">Close of ${esc(d.asof)} · built ${asof.toLocaleString([], {dateStyle:'medium',timeStyle:'short'})}</span>
+      ${d.mock?'<span class="badge warn">SYNTHETIC TEST DATA</span>':''}
+      ${d.errors.length?`<button class="badge warn" onclick="document.getElementById('errs').classList.toggle('show')">${d.errors.length} data warning${d.errors.length>1?'s':''}</button>`:''}
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <span class="sub" style="font-size:12px;margin-right:4px">Horizon</span>
+      ${['5','21','63'].map(k=>`<button class="btn ${k===h?'on':''}" onclick="S.h='${k}';render()">${HL[k]}</button>`).join('')}
+    </div>
+  </div>
+  <div class="panel errs" id="errs">${d.errors.map(e=>`<div>• ${esc(e)}</div>`).join('')}</div>`;
+
+  // ---------- level 0
+  const rg=v.regime, rn=rg.name;
+  const q=['Goldilocks','Reflation','Deflation','Stagflation'];
+  const condBy=Object.fromEntries(d.conditions.map(c=>[c.id,c]));
+  const cs=id=>condBy[id]&&!condBy[id].missing?condBy[id].state[h]:null;
+  const liqTxt=['netliq','dxy','hy','stable'].map(id=>{const s=cs(id);return s?`${condBy[id].name.replace(' (DXY)','').replace('HY credit spreads','spreads').replace('Stablecoin supply','stablecoins')} ${s.txt}`:null}).filter(Boolean).join(', ');
+  const L=v.liquidity, lsc=L.score?.[h];
+  const lstate=lsc==null?L.state:(lsc>0.35?'Expanding':lsc<-0.35?'Contracting':'Neutral'), ltone=lsc==null?L.tone:(lsc>0.35?1:lsc<-0.35?-1:0);
+  const b=v.breadth, vo=v.volatility, rk=v.risk;
+  html+=`<div class="lvl">LEVEL 0 · VERDICT</div><div class="tiles">
+    <div class="panel tile" title="Growth score ${rg.growth?.toFixed(2)} · inflation score ${rg.inflation?.toFixed(2)} (3-month market-implied)">
+      <div class="k">Macro regime (growth × inflation)</div>
+      <div class="v">${esc(rn||'—')}</div>
+      <div class="quad">${q.map(x=>`<div class="${x===rn?'on':''}">${x}${x===rn?' ●':''}</div>`).join('')}</div>
+      <div class="hist" aria-label="regime over the last 12 months">${rg.history.map(m=>`<div style="background:${REG[m.r]||'#2A313B'}" title="${esc(m.m)}: ${esc(m.r||'—')}"></div>`).join('')}</div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted)"><span>12 months ago</span><span>now</span></div>
+    </div>
+    <div class="panel tile"><div class="k">Risk appetite</div>
+      <div class="v" style="color:${TONE[rk.tone]}">${arrow(rk.tone)} ${esc(rk.state)}</div>
+      <div class="d">${rk.parts.map(p=>`${esc(p.n)} ${p.z>0.3?'↑':p.z<-0.3?'↓':'→'}`).join(' · ')} <span style="color:var(--dim)">(1M)</span></div></div>
+    <div class="panel tile"><div class="k">Market breadth</div>
+      <div class="v" style="color:${TONE[b.tone]}">${arrow(b.tone)} ${esc(b.state)}</div>
+      <div class="d">${b.now==null?'—':`${Math.round(b.now*100)}% of ${b.n} tracked US stocks above MA50 (${Math.round(b.prev*100)}% two weeks ago). Equal-weight vs cap-weight: ${pct(b.ew)} over 1M.`}</div></div>
+    <div class="panel tile"><div class="k">Liquidity</div>
+      <div class="v" style="color:${TONE[ltone]}">${arrow(ltone)} ${lstate}</div>
+      <div class="d">${esc(liqTxt||'—')} <span style="color:var(--dim)">(${HL[h]})</span></div></div>
+    <div class="panel tile"><div class="k">Volatility</div>
+      <div class="v" style="color:${vo.tone<0?'var(--neg)':'#C9D1D9'}">● ${esc(vo.state)}</div>
+      <div class="d">VIX ${vo.vix?.toFixed(1)??'—'} · MOVE ${vo.move?.toFixed(0)??'—'} — ${vo.pct==null?'—':Math.round(vo.pct*100)+'th percentile of the past year'}.${vo.state==='Compressed'?' Calm, but compression tends to end in expansion.':''}</div></div>
+  </div>`;
+
+  // ---------- level 1
+  html+=`<div class="lvl">LEVEL 1 · FINANCIAL CONDITIONS — WHAT MOVES EVERYTHING</div><div class="row2"><div class="conds">`;
+  for(const c of d.conditions){
+    if(c.missing){html+=`<div class="panel cond"><div class="h"><span>${esc(c.why)}</span><span>${esc(c.src)}</span></div><div class="n">${esc(c.name)}</div><div class="s" style="color:var(--dim)">no data</div></div>`;continue}
+    const s=c.state[h]||{}, col=TONE[s.tone??0];
+    const ch=s.chg==null?'':(c.unit==='pct'?((s.chg>0?'+':'')+(s.chg*100).toFixed(0)+' bp'):pct(s.chg));
+    html+=`<div class="panel cond"><div class="h"><span>${esc(c.why)}</span><span>${esc(c.src)}</span></div>
+      <div class="n">${esc(c.name)}</div>
+      <div class="s mono" style="color:${col}">${arrow(s.tone??0)} ${esc(s.txt)}</div>
+      <div class="val mono">${money(c.value,c.unit)} · ${ch} ${HL[h]}</div>
+      <div class="spark" aria-hidden="true">${c.spark.map(x=>`<div style="height:${x}%;background:${col}"></div>`).join('')}</div></div>`;
+  }
+  html+=`</div><div class="panel feed"><div style="font-size:13px;font-weight:600;margin-bottom:4px">What changed this week</div>
+    ${d.changes.length?d.changes.map(c=>`<div class="it"><span style="color:${TONE[c.tone]};font-weight:700">${esc(c.i)}</span> ${esc(c.t)}</div>`).join(''):'<div class="it" style="color:var(--muted)">Nothing notable.</div>'}</div></div>`;
+
+  // ---------- level 2
+  const maxS=Math.max(...classes.map(c=>c.strength[h]??0)), minS=Math.min(...classes.map(c=>c.strength[h]??0));
+  html+=`<div class="lvl">LEVEL 2 · WHERE IT FLOWS — ASSET CLASSES</div><div class="row2">
+    <div class="panel rrgbox"><div style="font-size:13px;font-weight:600">Rotation map (RRG vs world equities, ACWI)</div>
+      ${rrgSvg(classes)}
+      <div class="note">X — relative strength · Y — its momentum · tail — last 6 weeks · dot size — dollar volume. Click a dot to drill down.</div></div>
+    <div class="panel cls"><div style="font-size:13px;font-weight:600;margin-bottom:6px">Classes ranked by strength (${HL[h]}) · click → level 3</div>
+      <div class="scroll"><div style="min-width:580px">
+      <div class="ct hd"><span>Class</span><span>Strength & inflow</span><span>RS</span><span>Breadth</span><span>Concentration</span></div>
+      ${classes.map(c=>{
+        const sc=c.rsScore[h], s=c.strength[h]??0, w=8+92*((s-minS)/((maxS-minS)||1));
+        const col=s>0.5?'var(--pos)':s<-0.5?'var(--neg)':'var(--neu)';
+        return `<button class="ct ${c.id===S.sel?'on':''}" onclick="pick('${c.id}')" title="RS ${HL[h]}: ${pct(c.rs[h])} vs ACWI · volume ${c.relvol?c.relvol.toFixed(2)+'×':'—'} normal · accumulation ${c.acc==null?'—':c.acc.toFixed(2)}">
+          <span style="font-weight:600">${esc(c.name)}</span>
+          <div class="bar" style="width:${w}%;background:${col}"></div>
+          <span class="mono" style="color:${col};font-weight:600">${sc==null?'—':SYM[sc+3]}</span>
+          <span style="color:#C9D1D9" title="${c.breadth.now==null?'':Math.round(c.breadth.now*100)+'% above MA50'}">${esc(c.breadth.txt)}</span>
+          <span style="color:#C9D1D9">${esc(c.conc.txt)}</span></button>`}).join('')}
+      </div></div></div></div>`;
+
+  // ---------- level 3–4
+  const sc=classes.find(c=>c.id===S.sel);
+  html+=`<div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin-top:8px">
+    <span class="lvl" style="margin:0">LEVEL 3–4 · WHERE IT CONCENTRATES — INSTRUMENTS</span>
+    <span style="font-size:13px">All markets <span style="color:var(--dim)">›</span> <span style="color:var(--pos);font-weight:600">${esc(sc?.name||'')}</span></span></div>
+  <div class="panel" style="padding:8px"><div class="scroll"><div class="mx">
+    <div class="mr hd"><span>Class / instrument</span>${COLS.map(c=>`<span>${c}</span>`).join('')}<span>Signal</span></div>`;
+  for(const c of classes){
+    const open=c.id===S.sel;
+    html+=row({n:c.name,tk:'',cells:c.cells,raw:c.raw,sig:c.sig,tone:c.tone},0,open,`pick('${c.id}')`,'ACWI',true);
+    if(open)html+=kids(c.children,c.id,c.id==='crypto'?'top-10 index':c.proxy,c.id==='crypto');
+  }
+  html+=`</div></div></div>
+  <div class="note">Money flowing in = price ↑ + volume above normal + accumulation · Money flowing out = the reverse · Distribution = price up while volume sits on down days · Rally without volume = warning. RS is measured against the parent: classes vs ACWI, members vs their class, stocks vs their sector ETF. Hover any cell for the number.</div>
+  <div class="legend"><span style="margin-right:6px">Scale</span>${[-3,-2,-1,0,1,2,3].map(x=>cell(x,'')).join('')}
+    <span style="margin-left:10px">strong outflow / weakness → strong inflow / strength · n/a = no volume data (FX, futures, indices)</span></div>
+  <div class="note">Sources: Yahoo Finance (prices, volume), FRED (liquidity, yields, spreads), DefiLlama (stablecoins), CoinGecko (crypto top-10). Not investment advice.</div>`;
+  document.getElementById('app').innerHTML=html;
+}
+
+function row(n,lvl,open,onclick,parent,isGroup){
+  const pad=[0,18,40][lvl]??40;
+  const caret=onclick?(open?'▾ ':'▸ '):'';
+  const t=tips(n.raw,parent);
+  const nm=(n.rank?`#${n.rank} `:'')+n.n;
+  return `<div class="mr ${isGroup?'g':lvl===2?'l2':''}">
+    <button class="nm" ${onclick?`onclick="${onclick}"`:'disabled'} style="padding-left:${pad}px;font-size:${isGroup?14:lvl===2?12:13}px;font-weight:${isGroup?700:lvl===2?400:500}">
+      <span>${caret}${esc(nm)}</span>${n.new?'<span class="new">NEW</span>':''}<span class="tk mono">${esc(n.tk)}</span></button>
+    ${n.cells.map((v,i)=>cell(v,t[i])).join('')}
+    <span style="font-size:12px;font-weight:600;color:${TONE[n.tone]}">${esc(n.sig)}</span></div>`;
+}
+function kids(list,cid,parent,byRank){
+  const hi=HI[S.h];
+  const sorted=[...list].sort((a,b)=>byRank?((a.rank??99)-(b.rank??99)):((b.raw?.[hi]??-9)-(a.raw?.[hi]??-9)));
+  let out='';
+  for(const n of sorted){
+    const key=cid+'/'+n.tk, has=n.children&&n.children.length, open=!!S.open[key];
+    out+=row(n,1,open,has?`tog('${key}')`:null,parent);
+    if(has&&open){
+      const ss=[...n.children].sort((a,b)=>(b.raw?.[hi]??-9)-(a.raw?.[hi]??-9));
+      for(const k of ss)out+=row(k,2,false,null,n.tk);
+    }
+  }
+  return out;
+}
+function pick(id){S.sel=S.sel===id?null:id;if(S.sel===null)S.sel=id;render();
+  const el=document.querySelector('.mx');if(el)el.closest('.panel').scrollIntoView({behavior:'smooth',block:'start'})}
+function tog(k){S.open[k]=!S.open[k];render()}
+
+function rrgSvg(classes){
+  const pts=classes.filter(c=>c.rrg);
+  if(!pts.length)return '<div class="note">Not enough history.</div>';
+  // scale to the current positions (tails may run off the edge and get clipped)
+  let mx_=0,my_=0;for(const c of pts){mx_=Math.max(mx_,Math.abs(c.rrg.x-100));my_=Math.max(my_,Math.abs(c.rrg.y-100))}
+  mx_=(mx_||1)*1.35;my_=(my_||1)*1.35;
+  const W=420,Hh=360,px=x=>Math.max(2,Math.min(W-2,(x-100+mx_)/(2*mx_)*W)),py=y=>Math.max(2,Math.min(Hh-2,Hh-(y-100+my_)/(2*my_)*Hh));
+  // label placement: push overlapping labels apart vertically
+  const lab=pts.map(c=>({id:c.id,x:px(c.rrg.x),y:py(c.rrg.y)+4})).sort((a,b)=>a.y-b.y);
+  for(let i=1;i<lab.length;i++)for(let j=0;j<i;j++){const a=lab[j],b=lab[i];if(Math.abs(a.x-b.x)<90&&b.y-a.y<13)b.y=a.y+13}
+  const ly=Object.fromEntries(lab.map(l=>[l.id,Math.min(Hh-4,l.y)]));
+  const dvs=pts.map(c=>c.dv20||0),mx=Math.max(...dvs)||1;
+  const col={Leading:'#3A80DD',Improving:'#7DB4FF',Weakening:'#9AA4AF',Lagging:'#F28C38'};
+  let s=`<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Relative rotation graph of asset classes" style="width:100%;height:auto;border-radius:6px;display:block">
+    <rect x="0" y="0" width="${W/2}" height="${Hh/2}" fill="#1A2230"/><rect x="${W/2}" y="0" width="${W/2}" height="${Hh/2}" fill="#16263A"/>
+    <rect x="0" y="${Hh/2}" width="${W/2}" height="${Hh/2}" fill="#1E1A17"/><rect x="${W/2}" y="${Hh/2}" width="${W/2}" height="${Hh/2}" fill="#1F1C18"/>
+    <text x="8" y="16" fill="#9AA4AF" font-size="11">Improving</text><text x="${W-8}" y="16" fill="#7DB4FF" font-size="11" text-anchor="end">Leading</text>
+    <text x="8" y="${Hh-8}" fill="#C28A5C" font-size="11">Lagging</text><text x="${W-8}" y="${Hh-8}" fill="#9AA4AF" font-size="11" text-anchor="end">Weakening</text>`;
+  for(const c of pts){
+    const r=c.rrg,cc=col[r.quad],tail=r.tail.map(([x,y])=>`${px(x).toFixed(1)},${py(y).toFixed(1)}`).join(' ');
+    const rad=4+8*Math.sqrt((c.dv20||0)/mx);
+    s+=`<polyline points="${tail} ${px(r.x).toFixed(1)},${py(r.y).toFixed(1)}" fill="none" stroke="${cc}" stroke-opacity=".35" stroke-width="1.3"/>`;
+    s+=`<g style="cursor:pointer" onclick="pick('${c.id}')"><title>${esc(c.name)}: ${r.quad} (ratio ${r.x.toFixed(1)}, momentum ${r.y.toFixed(1)})</title>
+      <circle cx="${px(r.x).toFixed(1)}" cy="${py(r.y).toFixed(1)}" r="${rad.toFixed(1)}" fill="${cc}" stroke="#0E1116" stroke-width="2"/>
+      <text x="${(px(r.x)>W-100?px(r.x)-rad-3:px(r.x)+rad+3).toFixed(1)}" text-anchor="${px(r.x)>W-100?'end':'start'}" y="${ly[c.id].toFixed(1)}" fill="#E6EDF3" font-size="11" font-weight="600">${esc(c.name)}</text></g>`;
+  }
+  return s+'</svg>';
+}
+
+fetch('data.json?'+Date.now()).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()})
+  .then(d=>{S.data=d;render()})
+  .catch(e=>{document.getElementById('app').innerHTML=`<div class="sub">Could not load data.json (${esc(e.message)}). The first scheduled run may not have happened yet.</div>`});
+</script>
+</body>
+</html>
