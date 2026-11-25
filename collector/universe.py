@@ -155,7 +155,10 @@ CRYPTO_EXCLUDE_IDS = {
     "ethena-staked-usde", "lombard-staked-btc", "solv-btc", "wrapped-solana", "binance-staked-sol",
     "susds", "bitcoin-avalanche-bridged-btc-b", "kelp-dao-restaked-eth", "mantle-staked-ether",
 }
+CRYPTO_EXCLUDE_IDS |= {"figure-heloc"}
 CRYPTO_EXCLUDE_SYMBOL_HINTS = ("usd", "eur")  # symbols containing these are treated as stablecoins
+# names containing these are tokenized loans / treasuries / funds, not crypto assets
+CRYPTO_EXCLUDE_NAME_HINTS = ("heloc", "treasury", "treasuries", "tokenized", "money market", "institutional digital liquidity")
 CRYPTO_TOP_N = 10
 CRYPTO_EXIT_RANK = 12  # hysteresis: a member leaves only when it falls below this rank
 

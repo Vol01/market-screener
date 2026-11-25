@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import requests
 
-from universe import (CRYPTO_EXCLUDE_IDS, CRYPTO_EXCLUDE_SYMBOL_HINTS,
+from universe import (CRYPTO_EXCLUDE_IDS, CRYPTO_EXCLUDE_SYMBOL_HINTS, CRYPTO_EXCLUDE_NAME_HINTS,
                       CRYPTO_TOP_N, CRYPTO_EXIT_RANK)
 
 UA = {"User-Agent": "Mozilla/5.0 (market-screener; personal dashboard)"}
@@ -161,7 +161,8 @@ def fetch_crypto(state, today):
             raw = _get(f"{CG}/coins/markets", {"vs_currency": "usd", "order": "market_cap_desc",
                                                 "per_page": 60, "page": 1}, _cg_headers())
             ranking = [c for c in raw if c["id"] not in CRYPTO_EXCLUDE_IDS
-                       and not any(h in c["symbol"].lower() for h in CRYPTO_EXCLUDE_SYMBOL_HINTS)]
+                       and not any(h in c["symbol"].lower() for h in CRYPTO_EXCLUDE_SYMBOL_HINTS)
+                       and not any(h in c["name"].lower() for h in CRYPTO_EXCLUDE_NAME_HINTS)]
         except Exception as e:
             _err("coingecko markets", e)
             return [], {}, [], []
