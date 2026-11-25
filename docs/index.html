@@ -248,12 +248,24 @@ function kids(list,cid,parent,byRank){
 function togCls(id){S.cls[id]=!S.cls[id];if(S.cls[id])S.sel=id;render()}
 function allCls(on){for(const c of S.data.classes)S.cls[c.id]=on;render()}
 // regime map: x = growth, y = inflation; dot = now, faint dots = last 6 month-ends
-function regPos(g,i){const s=2,c=v=>Math.max(-1,Math.min(1,v/s));return [50+c(g)*44,50-c(i)*42]}
+let REGS=2;function regPos(g,i){const c=v=>Math.max(-1,Math.min(1,v/REGS));return [50+c(g)*44,50-c(i)*42]}
 function regMap(rg){
   const rn=rg.name, cell=(n)=>`<div class="q ${n===rn?'on':''}" style="${n==='Stagflation'||n==='Reflation'?'':'align-items:flex-end;'}${n==='Reflation'||n==='Goldilocks'?'justify-content:flex-end;':''}">${n}</div>`;
   let dots='';
   const tr=rg.history.filter(m=>m.g!=null&&m.i!=null).slice(-7,-1);
-  tr.forEach((m,k)=>{const [x,y]=regPos(m.g,m.i);dots+=`<div class="dot" title="${esc(m.m)}: ${esc(m.r)}" style="left:${x}%;top:${y}%;width:6px;height:6px;background:#9AA4AF;opacity:${(0.25+0.6*(k+1)/tr.length).toFixed(2)}"></div>`});
+  // zoom to the path so small moves are still visible (never closer than ±0.75)
+  REGS=Math.max(0.75,...tr.flatMap(m=>[Math.abs(m.g),Math.abs(m.i)]),Math.abs(rg.growth??0),Math.abs(rg.inflation??0))*1.1;
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const path=tr.map(m=>regPos(m.g,m.i));
+  if(rg.growth!=null&&rg.inflation!=null)path.push(regPos(rg.growth,rg.inflation));
+  // path: one segment per month, fading in toward "now"
+  let segs='';
+  for(let k=1;k<path.length;k++){const [x1,y1]=path[k-1],[x2,y2]=path[k];
+    segs+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#E6EDF3" stroke-opacity="${(0.2+0.7*k/(path.length-1)).toFixed(2)}" stroke-width="${k===path.length-1?2:1.5}" vector-effect="non-scaling-stroke" stroke-linecap="round"/>`}
+  dots+=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">${segs}</svg>`;
+  tr.forEach((m,k)=>{const [x,y]=regPos(m.g,m.i),op=(0.35+0.6*(k+1)/tr.length).toFixed(2),mo=MN[+m.m.slice(5,7)-1]||'';
+    dots+=`<div class="dot" title="${esc(m.m)}: ${esc(m.r)}" style="left:${x}%;top:${y}%;width:6px;height:6px;background:#C9D1D9;opacity:${op}"></div>
+      <div style="position:absolute;left:${x}%;top:${y}%;transform:translate(5px,-13px);font-size:9px;color:#C9D1D9;opacity:${op};pointer-events:none">${mo}</div>`});
   if(rg.growth!=null&&rg.inflation!=null){const [x,y]=regPos(rg.growth,rg.inflation);
     dots+=`<div class="dot" title="Now: growth ${rg.growth.toFixed(2)}, inflation ${rg.inflation.toFixed(2)}" style="left:${x}%;top:${y}%;width:12px;height:12px;background:#E6EDF3;border:2px solid #0E1116"></div>`}
   return `<div class="qmap" role="img" aria-label="Regime map: growth on the horizontal axis, inflation on the vertical">
